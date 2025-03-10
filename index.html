@@ -43,12 +43,9 @@
     <div class="container">
         <h2>Webhook Sender</h2>
 
-        <!-- Form for Webhook URLs and Message -->
+        <!-- Form for Webhook URL and Message -->
         <label for="slackWebhook">Enter Slack Webhook URL:</label><br>
         <input type="text" id="slackWebhook" placeholder="Slack Webhook URL"><br>
-
-        <label for="discordWebhook">Enter Discord Webhook URL:</label><br>
-        <input type="text" id="discordWebhook" placeholder="Discord Webhook URL"><br>
 
         <label for="message">Enter your message:</label><br>
         <textarea id="message" rows="4" placeholder="Type your message here..."></textarea><br>
@@ -59,24 +56,19 @@
 
     <script>
         function sendWebhook() {
-            // Get the webhook URLs and message from user input
+            // Get the Slack webhook URL and message from user input
             const slackWebhookUrl = document.getElementById('slackWebhook').value;
-            const discordWebhookUrl = document.getElementById('discordWebhook').value;
             const message = document.getElementById('message').value;
 
-            // Check if all inputs are filled
-            if (!slackWebhookUrl || !discordWebhookUrl || !message) {
+            // Check if both inputs are filled
+            if (!slackWebhookUrl || !message) {
                 document.getElementById('status').textContent = 'Please fill out all fields!';
                 return;
             }
 
-            // Create the payloads for Slack and Discord
+            // Create the payload for Slack
             const slackPayload = {
                 text: message
-            };
-
-            const discordPayload = {
-                content: message
             };
 
             // Set status text to sending
@@ -90,30 +82,19 @@
                 },
                 body: JSON.stringify(slackPayload)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Slack response not OK');
+                }
+                return response.json();
+            })
             .then(data => {
                 console.log('Slack Response:', data);
-            })
-            .catch(error => {
-                console.error('Error sending message to Slack:', error);
-            });
-
-            // Send the message to Discord
-            fetch(discordWebhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(discordPayload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Discord Response:', data);
                 document.getElementById('status').textContent = 'Message sent successfully!';
             })
             .catch(error => {
-                console.error('Error sending message to Discord:', error);
-                document.getElementById('status').textContent = 'Failed to send message!';
+                console.error('Error sending message to Slack:', error);
+                document.getElementById('status').textContent = 'Failed to send message to Slack!';
             });
         }
     </script>
